@@ -7,6 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 import sys
 import os
+import shutil
 
 
 #Katlog instalacyjny QGIS
@@ -31,6 +32,7 @@ from xlrd import open_workbook
 from os import path
 import xlsxwriter
 from zipfile import ZipFile 
+import zipfile
 
 
   
@@ -59,6 +61,7 @@ class Ui_MainWindow(object):
         calPowLes=None
         lista2=[]
         lista4=[]
+        dataZIP=None
        
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1144, 593)
@@ -433,12 +436,6 @@ class Ui_MainWindow(object):
         
         
 
-       
-                      
-
-
-        
-        
         
         def createCategory():
             nonlocal categoryDictionary
@@ -497,30 +494,26 @@ class Ui_MainWindow(object):
             global symbol2
             global iloscWszWydz
             global calPowLes
+            global dataZIP
             
             #Wybranie pliku
-            selectedShapefile = QFileDialog.getOpenFileName(None, "Wybierz plik shp", "", "Shapefile (*.shp)")
-            #dialog = QFileDialog()
-            #dialog.setFileMode(QFileDialog.DirectoryOnly)
-            #selectedShapefile = dialog.getOpenFileName(None, "Wybierz archiwum", "", "Archiwum ZIP (*.zip")
-
-           
+            #selectedShapefile = QFileDialog.getOpenFileName(None, "Wybierz plik shp", "", "Shapefile (*.shp)")
+            dialog = QFileDialog()
+            dialog.setFileMode(QFileDialog.DirectoryOnly)
+            selectedShapefile1 = dialog.getOpenFileName(None, "Wybierz archiwum", "", "Archiwum ZIP (*.zip)")
+            y=str(os.path.basename(selectedShapefile1[0])).replace('.zip','/')
+            print(y)
+            x=selectedShapefile1[0]
             
             # opening the zip file in READ mode 
-            #with ZipFile(selectedShapefile, 'r') as zip: 
-                # printing all the contents of the zip file 
-                #zip.printdir() 
-            
-                # extracting all the files 
-                #print('Extracting all the files now...') 
-                #zip.extractall() 
-                #print('Done!') 
-
-
-
-
-
-            selectedLayer = QgsVectorLayer(selectedShapefile[0], "Wydzielenia", "ogr")
+            with ZipFile(x, 'r') as zip:
+                desktop = os.path.expanduser("~/Desktop")
+                zip.extractall(desktop)
+                dataZIP =desktop+'/'+y+'G_SUBAREA.shp'
+               
+            #dataZIP=str(desktop+'/'+y.replace('/',''))
+            print(dataZIP)
+            selectedLayer = QgsVectorLayer(dataZIP, "Wydzielenia", "ogr")
             crs = QgsCoordinateReferenceSystem('EPSG:2180')
             selectedLayer.setCrs(crs)
             #Dodane warstw do mapy
@@ -536,16 +529,7 @@ class Ui_MainWindow(object):
             self.label144.setVisible(True)
             self.label2.setVisible(True)
             self.map.xyCoordinates.connect(lambda:showXY(self.label144, self.map.mouseLastXY()))
-           
-        
             
-           
-          
- 
-            
-            
-        
-        
         
         
         def clearLabel():
@@ -557,6 +541,7 @@ class Ui_MainWindow(object):
             """ Usuwanie warstwy"""
             global selectedLayer
             global qgisInstance
+            global dataZIP
             qgisInstance.removeAllMapLayers()
             map.refresh()
             clearLabel()
@@ -564,6 +549,7 @@ class Ui_MainWindow(object):
             self.map.xyCoordinates.disconnect()
             self.label144.setVisible(False)
             self.label2.setVisible(False)
+          
             
         def createSymbol(colorFill,colorBorder):
             
@@ -1018,7 +1004,7 @@ class Ui_MainWindow(object):
         self.deleteLayerBtn.clicked.connect(lambda:deleteLayer(self.map))
         
         self.actionCaly_zasieg.triggered.connect(lambda:extent(self.map))
-        self.actionHelp.triggered.connect(lambda:help())
+        #self.actionHelp.triggered.connect(lambda:help())
        
       
         
@@ -1027,7 +1013,7 @@ class Ui_MainWindow(object):
        
         
         self.actionDrukuj_obraz.triggered.connect(lambda:printImage())
-        self.actionZapisz_jako_obraz.triggered.connect(lambda:saveImage( self.map ))
+        #self.actionZapisz_jako_obraz.triggered.connect(lambda:saveImage( self.map ))
         self.pushButton_5.clicked.connect(lambda:(generateRaport()))
         self.odznaczBtn.clicked.connect(lambda:odznaczWydzielenia(self.map))
         actionPokazTabeleAtrybutow.triggered.connect(lambda:openTabele(self.map))
@@ -1147,7 +1133,20 @@ class Ui_MainWindow(object):
             nonlocal categoryDictionary
             Dane=[]
             
-            workbook = xlsxwriter.Workbook('Raport.xlsx')
+            dirPath = QSettings().value("/excelSavePath", ".", type=str)    
+            (filename, filter) = QFileDialog.getSaveFileName(MainWindow,
+                        "Zapisz jako plik excel...",
+                        dirPath,
+                        "Excel files (*.xls)",
+                        "Filter list for selecting files from a dialog box")
+            fn, fileExtension = path.splitext(filename)
+            if len(fn) == 0: # user choose cancel
+                return
+            QSettings().setValue("/excelSavePath", QFileInfo(filename).absolutePath())
+            if fileExtension != '.xls':
+                filename = filename + '.xls'
+
+            workbook = xlsxwriter.Workbook(filename)
             worksheet = workbook.add_worksheet()
             worksheet.write('A3', 'KATEGORIA OCHRONNOSCI')
             worksheet.write('B3', 'LICZBA WYDZIELEN')
@@ -1188,6 +1187,7 @@ if __name__ == "__main__":
         def closeEvent(self, event):
             
             QgsApplication.closeAllWindows()
+            
             
     app = QgsApplication([], True)
     app.initQgis()
