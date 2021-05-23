@@ -302,13 +302,13 @@ class Ui_MainWindow(object):
         
         actionIdentify= QtWidgets.QAction(MainWindow)
         icon6 = QtGui.QIcon()
-        icon6.addPixmap(QtGui.QPixmap(":/images/identify.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon6.addPixmap(QtGui.QPixmap(":/images/identify.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         actionIdentify.setIcon(icon6)
         actionIdentify.setObjectName("Identify")
         
         actionPokazTabeleAtrybutow = QtWidgets.QAction(MainWindow)
         icon7 = QtGui.QIcon()
-        icon7.addPixmap(QtGui.QPixmap(":/images/openTabele.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon7.addPixmap(QtGui.QPixmap(":/images/openTabele.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         actionPokazTabeleAtrybutow.setIcon(icon7)
       
         actionPokazTabeleAtrybutow.setObjectName("actionPokazTabeleAtrybutow")
@@ -334,7 +334,7 @@ class Ui_MainWindow(object):
         
         self.actionPan = QtWidgets.QAction(MainWindow)
         icon5 = QtGui.QIcon()
-        icon5.addPixmap(QtGui.QPixmap(":/images/pan"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon5.addPixmap(QtGui.QPixmap(":/images/pan.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         
         self.actionPan.setIcon(icon5)
         self.actionPan.setObjectName("PAN")
